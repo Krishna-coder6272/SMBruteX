@@ -1,5 +1,0 @@
-administrator
-guest
-user
-test
-
