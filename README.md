@@ -28,8 +28,8 @@ This tool is built for red team assessments in a simulated lab environment.
 
 ## 🛠️ How to Run
 
-```bash
-git clone https://github.com/yourusername/SMBruteX.git
+```bash[
+git clone https://github.com/Krishna-coder6272/SMBruteX.git
 cd SMBruteX
 pip install rich
 python smbrutex.py
