@@ -1,59 +1,25 @@
-from rich.console import Console
-from rich.table import Table
-from time import sleep
-import os
+from modules import scanner, brute, logger, exploit
+import argparse
 
-console = Console()
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="SharX - SMB Brute-force Tool")
+    parser.add_argument("target", help="Target IP address")
+    parser.add_argument("-w", "--wordlist", help="Path to password wordlist", default="wordlists/common.txt")
+    parser.add_argument("-t", "--threads", help="Number of threads", type=int, default=5)
+    args = parser.parse_args()
 
-console.print("[bold blue]🔐 Welcome to SMBruteX[/bold blue]\n", style="bold")
+    print("[+] Scanning target...")
+    if not scanner.port_open(args.target):
+        print("[-] Port 445 not open.")
+        exit()
 
-ip = input("🌐 Enter Target IP: ")
+    os_info, smb_version = scanner.detect_os_smb(args.target)
+    print(f"[+] Detected OS: {os_info}, SMB Version: {smb_version}")
 
-# ✅ Validate IP format
-if len(ip.split(".")) != 4 or not all(part.isdigit() and 0 <= int(part) <= 255 for part in ip.split(".")):
-    console.print(f"[bold red]❌ Invalid IP Address: {ip}[/bold red]")
-    exit(1)
-
-# Check for required files
-if not os.path.exists("usernames.txt") or not os.path.exists("passwords.txt"):
-    console.print("[bold red]❌ Required files 'usernames.txt' or 'passwords.txt' are missing![/bold red]")
-    exit(1)
-
-# Load usernames and passwords
-with open("usernames.txt", "r") as f:
-    usernames = [line.strip() for line in f if line.strip()]
-with open("passwords.txt", "r") as f:
-    passwords = [line.strip() for line in f if line.strip()]
-
-console.print("[bold yellow]\n⚠️ Note: This tool is a simulation and does NOT attempt real SMB connections.[/bold yellow]\n")
-
-results = []
-console.print(f"[bold yellow]🔍 Starting simulated brute-force attack on {ip}...[/bold yellow]\n")
-
-for username in usernames:
-    for password in passwords:
-        console.print(f"[cyan]Trying[/cyan] [bold]{username}[/bold]:[bold]{password}[/bold] on {ip}...")
-        sleep(0.2)
-
-        # Simulated success condition
-        if username == "admin" and password == "1234":
-            console.print(f"[green]✅ Simulated Success:[/] Login worked for {username}:{password}\n")
-            results.append((ip, username, password, "✅ Simulated Success"))
-        else:
-            console.print(f"[red]❌ Simulated Failure:[/] Incorrect {username}:{password}\n")
-            results.append((ip, username, password, "❌ Simulated Failure"))
-
-# Show result table
-console.print("\n[bold magenta]📋 Final Simulated Results:[/bold magenta]\n")
-
-table = Table(title="SMBruteX Simulated Attack Summary")
-table.add_column("Target IP", style="magenta")
-table.add_column("Username", style="green")
-table.add_column("Password", style="yellow")
-table.add_column("Status", style="bold red")
-
-for row in results:
-    table.add_row(*row)
-
-console.print(table)
-console.print("\n[bold blue]🛡️ Simulated brute-force attempt completed.[/bold blue]")
+    creds = brute.run_brute_force(args.target, args.wordlist, args.threads)
+    if creds:
+        logger.log_success(args.target, creds)
+        print("[+] Attempting auto-exploit...")
+        exploit.auto_list_shares(args.target, creds)
+    else:
+        print("[-] No valid credentials found.")
