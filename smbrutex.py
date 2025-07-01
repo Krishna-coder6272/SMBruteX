@@ -2,7 +2,7 @@ from modules import scanner, brute, logger, exploit
 import argparse
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="SharX - SMB Brute-force Tool")
+    parser = argparse.ArgumentParser(description="SMBruteX - SMB Brute-force Tool")
     parser.add_argument("target", help="Target IP address")
     parser.add_argument("-w", "--wordlist", help="Path to password wordlist", default="wordlists/common.txt")
     parser.add_argument("-t", "--threads", help="Number of threads", type=int, default=5)
